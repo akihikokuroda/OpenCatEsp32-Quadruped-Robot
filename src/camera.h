@@ -33,6 +33,8 @@ bool cameraReactionQ = true;
 bool updateCoordinateLock = false;
 int8_t cameraPrintQ = 0;
 int xCoord = -1, yCoord = -1, width = 0, height = 0; // the x y returned by the sensor
+int visionTarget = -1;  // detected class index (AI.boxes()[0].target); -1 = none / non-YOLO paths
+int visionScore = 0;    // detection confidence (AI.boxes()[0].score, 0-100)
 int lastXcoord = -1, lastYcoord = -1;
 int imgRangeX = 100;               // the frame size 0~100 on X and Y direction
 int imgRangeY = 100;
@@ -256,6 +258,14 @@ void showRecognitionResult(int xCoord, int yCoord, int width, int height = -1) {
   if (height >= 0) {
     printToAllPorts('\t', false);
     printToAllPorts(height, false);
+  }
+  if (visionTarget >= 0) {  // only the YOLO (Grove Vision) path sets this
+    printToAllPorts('\t', false);
+    printToAllPorts("target = ", false);
+    printToAllPorts(visionTarget, false);
+    printToAllPorts('\t', false);
+    printToAllPorts("score = ", false);
+    printToAllPorts(visionScore, false);
   }
   printToAllPorts('\t', true);
 }
@@ -775,6 +785,8 @@ void read_GroveVision() {
       yCoord = AI.boxes()[0].y;  // read y value
       width = AI.boxes()[0].w;  // read width value
       height = AI.boxes()[0].h;  // read height value
+      visionTarget = AI.boxes()[0].target;  // detected class index (e.g. rock/paper/scissors)
+      visionScore = AI.boxes()[0].score;    // detection confidence (0-100)
       updateCoordinateLock = false;
       detectedObjectQ = true;
       if (cameraPrintQ)
